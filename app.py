@@ -1,35 +1,61 @@
 import streamlit as st
 import typst
+from datetime import datetime
 
 # 1. Configuración del título de la pestaña web
-st.set_page_config(page_title="Makser Perú - Cotizaciones", page_icon="📋")
+st.set_page_config(page_title="Makser Perú - Cotizaciones", page_icon="📋", layout="wide")
 
 st.title("🚀 Sistema de Cotizaciones - Makser Perú S.A.C.")
-st.write("Llena los campos de la izquierda y derecha. Al finalizar, presiona el botón para compilar.")
+st.write("Llena los campos de las columnas. Al finalizar, presiona el botón para compilar.")
 
-# 2. Creamos dos columnas visuales en la pantalla para que se vea ordenado
-col1, col2 = st.columns(2)
+st.markdown(" ")
 
-with col1:
-    # st.text_input crea una caja de texto. El segundo parámetro es el valor por defecto.
-    nro_cotizacion = st.text_input("Número de Cotización", "300/26")
-    fecha = st.text_input("Fecha de Emisión", "Lima, 18 de Julio de 2026")
-    cliente = st.text_input("Cliente / Empresa", "MASKEL PERU S.A.C.")
-    contacto = st.text_input("Contacto / Atención", "Ing. ANTHONY JESUS")
+# Contenedor visual con borde
+with st.container(border=True):
+    col1, col2 = st.columns(2)
 
-with col2:
-    cant = st.text_input("Cantidad", "5")
-    unid = st.text_input("Unidad de Medida", "pza")
-    p_unit = st.text_input("Precio Unitario ($)", "600.00")
-    p_total = st.text_input("Precio Total ($)", "3000.00")
-    atentamente = st.text_input("Emitido por (Atte.)", "Ing. BRANDON JESUS")
+    with col1:
+        nro_cotizacion = st.text_input("Número de Cotización", "300/26")
+        
+        # 4. Calendario Interactivo para la Fecha
+        fecha_usuario = st.date_input("Selecciona la Fecha de Emisión", value=datetime.today())
+        
+        # Diccionario de meses en español para armar el formato exacto de texto
+        meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+        # Se formatea automáticamente como: "Lima, 18 de Julio de 2026"
+        fecha = f"Lima, {fecha_usuario.day} de {meses[fecha_usuario.month - 1]} de {fecha_usuario.year}"
+        
+        # Mostramos una pequeña ayuda visual de cómo se enviará la fecha
+        st.caption(f"📅 Formato enviado: *{fecha}*")
+        
+        cliente = st.text_input("Cliente / Empresa", "MASKEL PERU S.A.C.")
+        contacto = st.text_input("Contacto / Atención", "Ing. ANTHONY JESUS")
 
-# Una caja de texto más grande para la descripción del producto
-descripcion = st.text_area("Descripción detallada", "Grating frp de vidrio 1 X 4")
+    with col2:
+        # 1. Cálculos Automáticos en Tiempo Real (Cambiados a tipo numérico para calcular solos)
+        cant_num = st.number_input("Cantidad", min_value=1, value=5, step=1)
+        unid = st.text_input("Unidad de Medida", "pza")
+        p_unit_num = st.number_input("Precio Unitario ($)", min_value=0.0, value=600.00, step=0.01, format="%.2f")
+        
+        # El total se calcula multiplicando en tiempo real en memoria
+        total_calculado = cant_num * p_unit_num
+        
+        # Convertimos de nuevo a texto manteniendo tus mismos valores por defecto o los calculados
+        cant = str(cant_num)
+        p_unit = f"{p_unit_num:.2f}"
+        p_total = f"{total_calculado:.2f}"
+        
+        # Mostramos una caja de texto informativa del total calculado (bloqueada para edición manual)
+        st.text_input("Precio Total ($) [Calculado Automáticamente]", p_total, disabled=True)
+        
+        atentamente = st.text_input("Emitido por (Atte.)", "Ing. BRANDON JESUS")
+
+    # Tu caja de descripción original
+    descripcion = st.text_area("Descripción detallada", "Grating frp de vidrio 1 X 4", height=100)
 
 st.markdown("---")
 
-# 3. Empaquetamos todo en el diccionario que tu plantilla Typst ya conoce
+# 3. Tu diccionario original intacto con los nuevos datos procesados
 datos_nuevos = {
     "nro_cotizacion": nro_cotizacion,
     "fecha": fecha,
@@ -44,20 +70,23 @@ datos_nuevos = {
 }
 
 # 4. Botón de acción
-if st.button("⚡ Generar Cotización PDF", type="primary"):
+col_btn, _ = st.columns([1, 3])
+with col_btn:
+    btn_generar = st.button("⚡ Generar Cotización PDF", type="primary", use_container_width=True)
+
+if btn_generar:
     try:
         with st.spinner("Compilando cotización con Typst..."):
-            # Esto compila el PDF directamente en la memoria del servidor usando sys_inputs
             pdf_bytes = typst.compile("plantilla.typ", sys_inputs=datos_nuevos)
         
         st.success("¡PDF generado con éxito de manera interna!")
         
-        # Le muestra un botón al usuario para descargar el archivo a su PC
         st.download_button(
             label="📥 Descargar Archivo PDF",
             data=pdf_bytes,
             file_name=f"Cotizacion_{nro_cotizacion.replace('/', '-')}.pdf",
-            mime="application/pdf"
+            mime="application/pdf",
+            use_container_width=True
         )
     except Exception as e:
         st.error(f"Error al compilar el documento: {e}")
