@@ -37,6 +37,23 @@ def incrementar_contador(numero_actual):
         supabase.table("contador_cotizacion").update({"numero": nuevo_numero}).eq("id", 1).execute()
     except Exception as e:
         st.error(f"Error al actualizar el contador: {e}")
+def guardar_datos_cotizacion(datos):
+    """Inserta una nueva fila en la tabla 'cotizaciones' con los datos ingresados."""
+    try:
+        supabase.table("cotizaciones").insert({
+            "nro_cotizacion": datos["nro_cotizacion"],
+            "fecha": datos["fecha"],
+            "cliente": datos["cliente"],
+            "contacto": datos["contacto"],
+            "atentamente": datos["atentamente"],
+            "cantidad": int(datos["cant"]),
+            "unidad": datos["unid"],
+            "precio_unitario": float(datos["p_unit"]),
+            "precio_total": float(datos["p_total"]),
+            "descripcion": datos["descripcion"]
+        }).execute()
+    except Exception as e:
+        st.error(f"Error al guardar los datos en Supabase: {e}")        
 
 # =============================================================================
 # CONFIGURACIÓN DE LA INTERFAZ STREAMLIT
@@ -121,18 +138,36 @@ if btn_generar:
         with st.spinner("Compilando cotización con Typst..."):
             pdf_bytes = typst.compile("plantilla.typ", sys_inputs=datos_nuevos)
         
-        st.success("¡PDF generado con éxito de manera interna!")
+        # 1. Guardar los datos de la cotización en Supabase
+        guardar_datos_cotizacion(datos_nuevos)
         
-        # Incrementar el contador en Supabase inmediatamente después de la compilación exitosa
+        # 2. Incrementar el contador en Supabase para el siguiente documento
         incrementar_contador(num_actual)
         
-        st.download_button(
-            label="📥 Descargar Archivo PDF",
-            data=pdf_bytes,
-            file_name=f"Cotizacion_{nro_cotizacion.replace('/', '-')}.pdf",
-            mime="application/pdf",
-            use_container_width=True
-        )
+        # 3. Guardamos el PDF en la memoria de la sesión para que no se borre al recargar
+        st.session_state["pdf_listo"] = pdf_bytes
+        st.session_state["archivo_nombre"] = f"Cotizacion_{nro_cotizacion.replace('/', '-')}.pdf"
+        
+        st.success("¡PDF generado con éxito de manera interna!")
+        
+        # 4. Forzamos la recarga automática para actualizar el número en pantalla de inmediato
+        st.rerun()
         
     except Exception as e:
         st.error(f"Error al compilar el documento: {e}")
+
+# =============================================================================
+# MOSTRAR BOTÓN DE DESCARGA SI EL PDF YA SE GENERÓ
+# =============================================================================
+# Esto se coloca al final de todo el archivo, fuera de cualquier bloque "if"
+if "pdf_listo" in st.session_state:
+    st.markdown("### 📄 Tu documento está listo")
+    st.download_button(
+        label="📥 Descargar Archivo PDF",
+        data=st.session_state["pdf_listo"],
+        file_name=st.session_state["archivo_nombre"],
+        mime="application/pdf",
+        use_container_width=True
+    )
+    # Opcional: Limpiamos la sesión para que el botón desaparezca al cambiar de pestaña
+    del st.session_state["pdf_listo"]
