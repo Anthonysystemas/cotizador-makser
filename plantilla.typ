@@ -10,8 +10,7 @@
 #let descripcion = sys.inputs.at("descripcion", default: "Grating 10 piezas según plano...")
 #let p_unit = sys.inputs.at("p_unit", default: "1050.00")
 #let p_total = sys.inputs.at("p_total", default: "1050.00")
-#let atentamente = sys.inputs.at("Attentamente", default: "ING. ELIO CORONEL GABRIEL")
-
+#let atentamente = sys.inputs.at("atentamente", default: "ING. ELIO CORONEL GABRIEL")
 #set page(
   paper: "a4",
   margin: (top: 1.5cm, bottom: 1.5cm, left: 2cm, right: 2cm),

@@ -5,6 +5,12 @@ from datetime import datetime
 # 1. Configuración del título de la pestaña web
 st.set_page_config(page_title="Makser Perú - Cotizaciones", page_icon="📋", layout="wide")
 
+# 2. Logotipo de la Empresa en la Cabecera
+try:
+    st.image("logo_makser.png", width=250)
+except Exception:
+    st.caption("💡 *Nota: Coloca un archivo llamado 'logo_makser.png' en tu repositorio para mostrar el logo aquí.*")
+
 st.title("🚀 Sistema de Cotizaciones - Makser Perú S.A.C.")
 st.write("Llena los campos de las columnas. Al finalizar, presiona el botón para compilar.")
 
@@ -17,45 +23,44 @@ with st.container(border=True):
     with col1:
         nro_cotizacion = st.text_input("Número de Cotización", "300/26")
         
-        # 4. Calendario Interactivo para la Fecha
+        # Calendario Interactivo para la Fecha
         fecha_usuario = st.date_input("Selecciona la Fecha de Emisión", value=datetime.today())
         
         # Diccionario de meses en español para armar el formato exacto de texto
         meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
-        # Se formatea automáticamente como: "Lima, 18 de Julio de 2026"
         fecha = f"Lima, {fecha_usuario.day} de {meses[fecha_usuario.month - 1]} de {fecha_usuario.year}"
         
-        # Mostramos una pequeña ayuda visual de cómo se enviará la fecha
         st.caption(f"📅 Formato enviado: *{fecha}*")
         
         cliente = st.text_input("Cliente / Empresa", "MASKEL PERU S.A.C.")
         contacto = st.text_input("Contacto / Atención", "Ing. ANTHONY JESUS")
 
     with col2:
-        # 1. Cálculos Automáticos en Tiempo Real (Cambiados a tipo numérico para calcular solos)
+        # Cálculos Automáticos en Tiempo Real
         cant_num = st.number_input("Cantidad", min_value=1, value=5, step=1)
         unid = st.text_input("Unidad de Medida", "pza")
         p_unit_num = st.number_input("Precio Unitario ($)", min_value=0.0, value=600.00, step=0.01, format="%.2f")
         
-        # El total se calcula multiplicando en tiempo real en memoria
+        # El total se calcula multiplicando en tiempo real
         total_calculado = cant_num * p_unit_num
         
-        # Convertimos de nuevo a texto manteniendo tus mismos valores por defecto o los calculados
+        # Convertimos a texto manteniendo tus mismos formatos para Typst
         cant = str(cant_num)
         p_unit = f"{p_unit_num:.2f}"
         p_total = f"{total_calculado:.2f}"
         
-        # Mostramos una caja de texto informativa del total calculado (bloqueada para edición manual)
+        # Caja de texto informativa del total calculado (bloqueada para edición manual)
         st.text_input("Precio Total ($) [Calculado Automáticamente]", p_total, disabled=True)
         
-        atentamente = st.text_input("Emitido por (Atte.)", "Ing. BRANDON JESUS")
+        # TOTALMENTE LIBRE: Volvemos a text_input para que escribas CUALQUIER nombre
+        atentamente = st.text_input("Emitido por (Atte.)", "ING. ELIO CORONEL GABRIEL")
 
-    # Tu caja de descripción original
+    # Caja de descripción original
     descripcion = st.text_area("Descripción detallada", "Grating frp de vidrio 1 X 4", height=100)
 
 st.markdown("---")
 
-# 3. Tu diccionario original intacto con los nuevos datos procesados
+# 3. Tu diccionario original intacto con las variables procesadas
 datos_nuevos = {
     "nro_cotizacion": nro_cotizacion,
     "fecha": fecha,
