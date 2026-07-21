@@ -38,65 +38,85 @@ def renderizar_interfaz():
         contacto = st.text_input("Contacto / Atención", "Ing. ANTHONY JESUS")
         atentamente = st.text_input("Emitido por (Atte.)", "ING. ELIO CORONEL GABRIEL")
 
-    with col2:
-        cant_num = st.number_input("Cantidad", min_value=1, value=5, step=1)
-        unid = st.text_input("Unidad de Medida", "pza")
-        p_unit_num = st.number_input("Precio Unitario ($)", min_value=0.0, value=600.00, step=0.01, format="%.2f")
-        
-        total_calculado = cant_num * p_unit_num
-        cant = str(cant_num)
-        p_unit = f"{p_unit_num:.2f}"
-        p_total = f"{total_calculado:.2f}"
-        
-        st.text_input("Precio Total ($) [Calculado Automáticamente]", p_total, disabled=True)
+    # --- ESTADO PARA LA LISTA DE PRODUCTOS ---
+    if "lista_productos" not in st.session_state:
+        st.session_state["lista_productos"] = []
 
-    descripcion = st.text_area("Descripción detallada", "Grating frp de vidrio 1 X 4", height=100)
+    st.markdown("### 🧾 Agregar Productos")
+    with st.form("form_agregar_producto", clear_on_submit=True, border=True):
+        col_p1, col_p2, col_p3, col_p4 = st.columns([1, 1, 3, 1.2])
+        with col_p1:
+            cant_num = st.number_input("Cantidad", min_value=1, value=1, step=1)
+        with col_p2:
+            unid = st.text_input("Unidad", "pza")
+        with col_p3:
+            descripcion = st.text_input("Descripción", "")
+        with col_p4:
+            p_unit_num = st.number_input("P. Unitario ($)", min_value=0.0, value=0.0, step=0.01, format="%.2f")
+
+        agregar = st.form_submit_button("➕ Agregar producto", use_container_width=True)
+
+        if agregar:
+            if descripcion.strip() == "":
+                st.warning("Escribe una descripción antes de agregar el producto.")
+            else:
+                p_total_item = cant_num * p_unit_num
+                st.session_state["lista_productos"].append({
+                    "cant": str(cant_num),
+                    "unid": unid,
+                    "descripcion": descripcion,
+                    "p_unit": f"{p_unit_num:.2f}",
+                    "p_total": f"{p_total_item:.2f}"
+                })
+                st.rerun()
+
+    # --- TABLA DE PRODUCTOS AGREGADOS ---
+    total_general = 0.0
+    if st.session_state["lista_productos"]:
+        st.write("**Productos agregados:**")
+        for i, prod in enumerate(st.session_state["lista_productos"]):
+            col_a, col_b, col_c, col_d, col_e, col_f = st.columns([0.6, 0.8, 3, 1, 1, 0.6])
+            col_a.write(prod["cant"])
+            col_b.write(prod["unid"])
+            col_c.write(prod["descripcion"])
+            col_d.write(f'$ {prod["p_unit"]}')
+            col_e.write(f'$ {prod["p_total"]}')
+            if col_f.button("🗑️", key=f"del_{i}"):
+                st.session_state["lista_productos"].pop(i)
+                st.rerun()
+        total_general = sum(float(p["p_total"]) for p in st.session_state["lista_productos"])
+        st.markdown(f"### 💰 Total: $ {total_general:,.2f}")
+
     st.markdown("---")
 
     datos_nuevos = {
-    # --- 1. DATOS PARA LA PLANTILLA TYPST ---
-       "nro_cotizacion": nro_cotizacion,
+        "nro_cotizacion": nro_cotizacion,
         "fecha": fecha,
-    "cliente": cliente,
-    "contacto": contacto,
-    "atentamente": atentamente,
-    "cant": cant,
-    "unid": unid,
-    "descripcion": descripcion,
-    "p_unit": p_unit,
-    "p_total": p_total,
-    
-    # --- 2. DATOS PARA LA BASE DE DATOS (SUPABASE) ---
-    "productos": [
-        {
-            "cant": cant,
-            "unid": unid,
-            "descripcion": descripcion,
-            "p_unit": p_unit,
-            "p_total": p_total
-        }
-    ]
-}
+        "cliente": cliente,
+        "contacto": contacto,
+        "atentamente": atentamente,
+        "p_total_general": f"{total_general:.2f}",
+        "productos": st.session_state["lista_productos"]
+    }
 
     col_btn, _ = st.columns([1, 3])
     with col_btn:
         btn_generar = st.button("⚡ Generar Cotización PDF", type="primary", use_container_width=True)
 
     if btn_generar:
-        # Apagamos la alerta previa antes de intentar compilar el nuevo
-        st.session_state["mostrar_alerta_exito"] = False
-        try:
-            with st.spinner("Procesando cotización..."):
-                pdf_bytes = svc.generar_documento_cotizacion(datos_nuevos, num_actual)
-            
-            st.session_state["pdf_listo"] = pdf_bytes
-            st.session_state["archivo_nombre"] = f"Cotizacion_{nro_cotizacion.replace('/', '-')}.pdf"
-            # Activamos la alerta
-            st.session_state["mostrar_alerta_exito"] = True 
-            st.rerun()
-        except Exception as e:
-            st.error(f"Error en el proceso: {e}")
-
+        if not st.session_state["lista_productos"]:
+            st.error("Agrega al menos un producto antes de generar la cotización.")
+        else:
+            st.session_state["mostrar_alerta_exito"] = False
+            try:
+                with st.spinner("Procesando cotización..."):
+                    pdf_bytes = svc.generar_documento_cotizacion(datos_nuevos, num_actual)
+                st.session_state["pdf_listo"] = pdf_bytes
+                st.session_state["archivo_nombre"] = f"Cotizacion_{nro_cotizacion.replace('/', '-')}.pdf"
+                st.session_state["mostrar_alerta_exito"] = True
+                st.rerun()
+            except Exception as e:
+                st.error(f"Error en el proceso: {e}")
     # --- RENDERIZADO PERSISTENTE ---
     # Colocamos la alerta dentro del bloque de control del PDF para que salgan juntos
     if st.session_state["pdf_listo"] is not None:

@@ -1,16 +1,15 @@
-// Leer variables enviadas desde Python (con valores por defecto por si acaso)
+// Leer variables enviadas desde Python
 #let nro_cotizacion = sys.inputs.at("nro_cotizacion", default: "296/26")
 #let fecha = sys.inputs.at("fecha", default: "Lima 24 de Junio de 2026")
 #let cliente = sys.inputs.at("cliente", default: "PREMOSAIC S.A.")
 #let contacto = sys.inputs.at("contacto", default: "Fabio Gutierrez")
-
-// Datos del artículo
-#let cant = sys.inputs.at("cant", default: "1")
-#let unid = sys.inputs.at("unid", default: "gl")
-#let descripcion = sys.inputs.at("descripcion", default: "Grating 10 piezas según plano...")
-#let p_unit = sys.inputs.at("p_unit", default: "1050.00")
-#let p_total = sys.inputs.at("p_total", default: "1050.00")
 #let atentamente = sys.inputs.at("atentamente", default: "ING. ELIO CORONEL GABRIEL")
+#let p_total_general = sys.inputs.at("p_total_general", default: "0.00")
+
+// --- ESTA ES LA PARTE CLAVE: definir "productos" ANTES de usarlo ---
+#let productos_json = sys.inputs.at("productos_json", default: "[]")
+#let productos = json(bytes(productos_json))
+
 #set page(
   paper: "a4",
   margin: (top: 1.5cm, bottom: 1.5cm, left: 2cm, right: 2cm),
@@ -28,33 +27,33 @@
   columns: (1fr, 2.2fr),
   gutter: 1.5em,
   align: (center + horizon, left + horizon),
-  
+
   image("images/logo makser.jpg", width: 85%),
-  
+
   [
     #align(center)[
       #text(fill: rgb("#ff0000"), weight: 900, size: 22pt)[MAKSER PERU S.A.C]\
       #v(-4pt)
       #text(fill: blue, weight: "bold", size: 12pt)[RUC: 20505579527]
     ]
-    
+
     #v(5pt)
-    
+
     #grid(
       columns: (24pt, 1fr),
       row-gutter: 9pt,
       align: (center + horizon, left + horizon),
-      
-      image("images/ubicacion.png", width: 14pt), 
+
+      image("images/ubicacion.png", width: 14pt),
       [Av. Eduardo de Habich 318 Int 205 Urb. Ingeniería SMP],
-      
-      image("images/mapa.png", width: 14pt), 
+
+      image("images/mapa.png", width: 14pt),
       [Av. Huarangal Parcela 42 Lot 25 Carabayllo],
-      
-      image("images/llamada-telefonica.png", width: 14pt), 
+
+      image("images/llamada-telefonica.png", width: 14pt),
       [*982798062*],
-      
-      image("images/email.png", width: 14pt), 
+
+      image("images/email.png", width: 14pt),
       [jesus\@makserperu.com #h(4em) makser_peru\@yahoo.es]
     )
   ]
@@ -81,15 +80,21 @@ Señores:\
 #v(8pt)
 A su solicitud es grato presentar la cotización por el suministro de:
 
-// --- TABLA DE ARTÍCULOS ---
+// --- TABLA DE ARTÍCULOS (multi-producto) ---
 #set table(stroke: 0.5pt + black)
 #table(
   columns: (40pt, 40pt, 1fr, 55pt, 55pt),
   align: (center, center, left, right, right),
   fill: (x, y) => if y == 0 { rgb("#f2f2f2") } else { white },
   [*CAN*], [*UN*], [#align(center)[*DESCRIPCIÓN*]], [*P. UNIT.*], [*P. TOTAL*],
-  [#cant], [#unid], [#descripcion], [#p_unit], [#p_total]
+  ..productos.map(p => (
+    [#p.cant], [#p.unid], [#p.descripcion], [#p.p_unit], [#p.p_total]
+  )).flatten()
 )
+
+#align(right)[
+  #text(weight: "bold", size: 10pt)[TOTAL GENERAL: \$ #p_total_general]
+]
 
 // --- ESPECIFICACIONES TÉCNICAS ---
 #rect(width: 100%, stroke: 0.5pt + black, inset: 10pt)[
@@ -104,7 +109,7 @@ A su solicitud es grato presentar la cotización por el suministro de:
       - Separación entre platinas (SP) = 30mm
       - Barra cuadrilla torsional = 1/4"
       - Separación entre barras (SB) = 102mm
-      
+
       #v(5pt)
       *FABRICACIÓN SEGÚN NORMA NAAMM MB 531*\
       Materiales Platinas y Barra: ASTM A36 DE ACEROS AREQUIPA.\
@@ -126,7 +131,7 @@ A su solicitud es grato presentar la cotización por el suministro de:
   columns: (15pt, 140pt, 1fr),
   row-gutter: 8pt,
   align: (left, left, left),
-  
+
   [a)], [PRECIOS], [: *En Dólares USA. No Incluye IGV.*],
   [b)], [FORMA DE PAGO], [: 50% de adelanto y saldo contra entrega. *Depósito en Cta. Cte. N° 191 1479035 1 56 Banco de Crédito en Dólares.*],
   [c)], [TIEMPO DE ENTREGA], [: 8 días útiles a partir del adelanto.],
