@@ -54,17 +54,29 @@ def renderizar_interfaz():
     st.markdown("---")
 
     datos_nuevos = {
-        "nro_cotizacion": nro_cotizacion,
+    # --- 1. DATOS PARA LA PLANTILLA TYPST ---
+       "nro_cotizacion": nro_cotizacion,
         "fecha": fecha,
-        "cliente": cliente,
-        "contacto": contacto,
-        "cant": cant,
-        "unid": unid,
-        "descripcion": descripcion,
-        "p_unit": p_unit,
-        "p_total": p_total,
-        "atentamente": atentamente, 
-    }
+    "cliente": cliente,
+    "contacto": contacto,
+    "atentamente": atentamente,
+    "cant": cant,
+    "unid": unid,
+    "descripcion": descripcion,
+    "p_unit": p_unit,
+    "p_total": p_total,
+    
+    # --- 2. DATOS PARA LA BASE DE DATOS (SUPABASE) ---
+    "productos": [
+        {
+            "cant": cant,
+            "unid": unid,
+            "descripcion": descripcion,
+            "p_unit": p_unit,
+            "p_total": p_total
+        }
+    ]
+}
 
     col_btn, _ = st.columns([1, 3])
     with col_btn:
