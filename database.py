@@ -1,13 +1,18 @@
 import os
+from dotenv import load_dotenv
 from supabase import Client, create_client
 
-# Credenciales de acceso a Supabase
-SUPABASE_URL = os.environ.get(
-    "SUPABASE_URL", "https://qsndihdikzxleihyazlt.supabase.co"
-)
-SUPABASE_KEY = os.environ.get(
-    "SUPABASE_KEY", "sb_publishable_t0zRA7Neynf2lSATcw3QDA_EN2AZQaM"
-)
+
+# Carga las variables desde el archivo .env local
+load_dotenv()
+
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+  raise ValueError(
+      "Faltan las credenciales de Supabase en el archivo .env o en el entorno."
+  )
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
