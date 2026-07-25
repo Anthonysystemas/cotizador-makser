@@ -1,4 +1,6 @@
-// Leer variables enviadas desde Python
+// ==========================================
+// 1. VARIABLES DE COTIZACIÓN Y CLIENTE
+// ==========================================
 #let nro_cotizacion = sys.inputs.at("nro_cotizacion", default: "296/26")
 #let fecha = sys.inputs.at("fecha", default: "Lima 24 de Junio de 2026")
 #let cliente = sys.inputs.at("cliente", default: "PREMOSAIC S.A.")
@@ -6,9 +8,36 @@
 #let atentamente = sys.inputs.at("atentamente", default: "ING. ELIO CORONEL GABRIEL")
 #let p_total_general = sys.inputs.at("p_total_general", default: "0.00")
 
-// --- ESTA ES LA PARTE CLAVE: definir "productos" ANTES de usarlo ---
+// Parseo de lista de productos para la cotización
 #let productos_json = sys.inputs.at("productos_json", default: "[]")
 #let productos = json(bytes(productos_json))
+
+// ==========================================
+// 1B. VARIABLES DE CONDICIONES GENERALES (nuevo)
+// ==========================================
+#let precios = sys.inputs.at("precios", default: "En Dólares USA. No Incluye IGV.")
+#let forma_pago = sys.inputs.at("forma_pago", default: "50% de adelanto y saldo contra entrega. Depósito en Cta. Cte. N° 191 1479035 1 56 Banco de Crédito en Dólares.")
+#let tiempo_entrega = sys.inputs.at("tiempo_entrega", default: "8 días útiles a partir del adelanto.")
+#let tiempo_validez = sys.inputs.at("tiempo_validez", default: "7 días calendarios.")
+
+// ==========================================
+// 2. VARIABLES EXCLUSIVAS DE FICHA TÉCNICA
+// ==========================================
+#let nro_ficha = sys.inputs.at("nro_ficha", default: "FT-2026-001")
+#let producto_nombre = sys.inputs.at("producto_nombre", default: "GRATING ELECTROSOLDADO 19W-4")
+#let categoria = sys.inputs.at("categoria", default: "Rejillas Industriales")
+#let descripcion_general = sys.inputs.at("descripcion_general", default: "Rejilla metálica electrosoldada de alta resistencia.")
+#let imagen_producto = sys.inputs.at("imagen_producto", default: "images/GRATING.jpg")
+
+#let norma = sys.inputs.at("norma", default: "FABRICACIÓN SEGÚN NORMA NAAMM MB 531")
+#let etiqueta_mat = sys.inputs.at("etiqueta_mat", default: "Materiales Platinas y Barra:")
+#let valor_mat = sys.inputs.at("valor_mat", default: "ASTM A36 DE ACEROS AREQUIPA.")
+#let acabado = sys.inputs.at("acabado", default: "Con platinas dentadas y en negro natural.")
+
+// Parseo de características dinámicas (relación Padre-Hijo)
+#let especificaciones_json = sys.inputs.at("especificaciones_json", default: "[]")
+#let especificaciones = json(bytes(especificaciones_json))
+
 
 #set page(
   paper: "a4",
@@ -96,35 +125,49 @@ A su solicitud es grato presentar la cotización por el suministro de:
   #text(weight: "bold", size: 10pt)[TOTAL GENERAL: \$ #p_total_general]
 ]
 
-// --- ESPECIFICACIONES TÉCNICAS ---
+// ==========================================
+// BLOQUE DE CARACTERÍSTICAS TÉCNICAS
+// ==========================================
 #rect(width: 100%, stroke: 0.5pt + black, inset: 10pt)[
-  #text(weight: "bold", size: 9pt)[CARACTERÍSTICAS TÉCNICAS GRATING TOPI 19W-4]
+  #text(weight: "bold", size: 9pt)[CARACTERÍSTICAS TÉCNICAS #producto_nombre]
   #v(2pt)
   #grid(
     columns: (1fr, auto),
     gutter: 1em,
     [
       #set text(size: 9pt)
-      - Platina Portante (PP) = 3/16" x 1 1/2"
-      - Separación entre platinas (SP) = 30mm
-      - Barra cuadrilla torsional = 1/4"
-      - Separación entre barras (SB) = 102mm
+
+      #for item in especificaciones [
+        - #item.etiqueta = #item.valor \
+      ]
 
       #v(5pt)
-      *FABRICACIÓN SEGÚN NORMA NAAMM MB 531*\
-      Materiales Platinas y Barra: ASTM A36 DE ACEROS AREQUIPA.\
-      *Acabado: Con platinas dentadas y en negro natural.*
+      *#norma*\
+      #etiqueta_mat #valor_mat \
+      *Acabado: #acabado*
     ],
-    image("images/GRATING.jpg", width: 140pt)
+    box(
+  width: 140pt,
+  height: 140pt,
+  clip: true,
+  radius: 4pt, // Opcional: bordes ligeramente redondeados
+  [
+    #image(
+      imagen_producto, 
+      width: 100%, 
+      height: 100%, 
+      fit: "cover"
+    )
+  ]
+)
   )
 ]
-
 #v(-2pt)
 #text(fill: blue, weight: "bold", size: 9pt)[NOTA: Precio en la Planta.]
 
 #v(10pt)
 
-// --- CONDICIONES GENERALES ---
+// --- CONDICIONES GENERALES (ahora dinámico) ---
 #text(weight: "bold", size: 10pt)[CONDICIONES GENERALES:]
 #v(2pt)
 #grid(
@@ -132,10 +175,10 @@ A su solicitud es grato presentar la cotización por el suministro de:
   row-gutter: 8pt,
   align: (left, left, left),
 
-  [a)], [PRECIOS], [: *En Dólares USA. No Incluye IGV.*],
-  [b)], [FORMA DE PAGO], [: 50% de adelanto y saldo contra entrega. *Depósito en Cta. Cte. N° 191 1479035 1 56 Banco de Crédito en Dólares.*],
-  [c)], [TIEMPO DE ENTREGA], [: 8 días útiles a partir del adelanto.],
-  [d)], [TIEMPO VALIDEZ DE PRECIO], [: 7 días calendarios.]
+  [a)], [PRECIOS], [: #strong[#precios]],
+  [b)], [FORMA DE PAGO], [: #strong[#forma_pago]],
+  [c)], [TIEMPO DE ENTREGA], [: #tiempo_entrega],
+  [d)], [TIEMPO VALIDEZ DE PRECIO], [: #tiempo_validez]
 )
 
 #v(30pt)
