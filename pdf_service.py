@@ -35,6 +35,7 @@ def generar_documento_cotizacion(datos, num_actual):
     datos_para_typst["etiqueta_mat"] = str(ficha.get("etiqueta_material", ""))
     datos_para_typst["valor_mat"] = str(ficha.get("valor_material", ""))
     datos_para_typst["acabado"] = str(ficha.get("acabado", ""))
+    datos_para_typst["nota_pie"] = str(ficha.get("nota_pie", ""))
     datos_para_typst["imagen_producto"] = str(ficha.get("imagen_url", ""))
     datos_para_typst["especificaciones_json"] = json.dumps(
         ficha.get("detalles", [])
