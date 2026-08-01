@@ -1,3 +1,4 @@
 streamlit
 typst
 supabase
+python-dotenv
