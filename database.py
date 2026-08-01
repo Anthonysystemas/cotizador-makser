@@ -7,36 +7,28 @@ except ImportError:
 
 from supabase import Client, create_client
 
-
 if load_dotenv:
     load_dotenv()
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
-if not SUPABASE_URL or not SUPABASE_KEY:
-  raise ValueError(
-      "Faltan las credenciales de Supabase.\n\n"
-      "Configúralas según tu entorno:\n\n"
-      "1. LOCAL: Crea un archivo '.env' en la raíz del proyecto con:\n"
-      "   SUPABASE_URL=https://...supabase.co\n"
-      "   SUPABASE_KEY=sb_...\n\n"
-      "2. RENDER: En el dashboard de Render, ve a tu servicio → "
-      "Environment → Environment Variables y agrega:\n"
-      "   SUPABASE_URL  = https://tu-proyecto.supabase.co\n"
-      "   SUPABASE_KEY  = sb_...\n\n"
-      "3. STREAMLIT: En .streamlit/secrets.toml o Streamlit Cloud Secrets."
-  )
-
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+if SUPABASE_URL and SUPABASE_KEY:
+  supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+  print("✅ Supabase conectado correctamente.")
+else:
+  supabase: Client = None  # type: ignore
+  print("⚠️  Supabase no configurado. Las funciones de BD estarán deshabilitadas.")
+  print("   Configura SUPABASE_URL y SUPABASE_KEY en tu .env o en el dashboard de Render.")
 
 # ==========================================
 # FUNCIONES PARA COTIZACIONES
 # ==========================================
 
-
 def obtener_siguiente_codigo():
   """Obtiene el correlativo actual de cotización desde la tabla 'contador_cotizacion'."""
+  if supabase is None:
+    return "000/00", 0, 0
   try:
     respuesta = (
         supabase.table("contador_cotizacion")
@@ -58,6 +50,8 @@ def obtener_siguiente_codigo():
 
 def incrementar_contador(numero_actual):
   """Incrementa en 1 el contador de cotizaciones en la base de datos."""
+  if supabase is None:
+    return
   try:
     nuevo_numero = numero_actual + 1
     supabase.table("contador_cotizacion").update({"numero": nuevo_numero}).eq(
@@ -69,6 +63,8 @@ def incrementar_contador(numero_actual):
 
 def guardar_datos_cotizacion(datos):
   """Guarda la cabecera en 'cotizaciones' y sus items en 'detalle_cotizaciones'."""
+  if supabase is None:
+    return None
   try:
     # 1. Cabecera de la Cotización
     respuesta_cabecera = (
@@ -121,9 +117,10 @@ def guardar_datos_cotizacion(datos):
 # FUNCIONES PARA FICHA TÉCNICA
 # ==========================================
 
-
 def obtener_ficha_tecnica_por_id(ficha_id: int):
   """Obtiene la cabecera y las características dinámicas de una Ficha Técnica por su ID."""
+  if supabase is None:
+    return None
   try:
     respuesta = (
         supabase.table("caracteristicas_tecnicas")
@@ -141,9 +138,10 @@ def obtener_ficha_tecnica_por_id(ficha_id: int):
 
 def guardar_ficha_tecnica(datos_ficha):
   """Guarda la cabecera en 'caracteristicas_tecnicas' y sus características
-
   hijo en 'detalles_caracteristicas_tecnicas'.
   """
+  if supabase is None:
+    return None
   try:
     # 1. Insertar Cabecera (Padre)
     respuesta_padre = (
@@ -172,7 +170,7 @@ def guardar_ficha_tecnica(datos_ficha):
     detalles_a_insertar = []
     for idx, det in enumerate(datos_ficha.get("detalles", []), start=1):
       detalles_a_insertar.append({
-          "caracteristica_id": ficha_id_generado,  # Columna en Supabase
+          "caracteristica_id": ficha_id_generado,
           "orden": det.get("orden", idx),
           "etiqueta": str(det.get("etiqueta", "")),
           "valor": str(det.get("valor", "")),
@@ -188,13 +186,15 @@ def guardar_ficha_tecnica(datos_ficha):
   except Exception as e:
     raise Exception(f"Error en BD al guardar la Ficha Técnica: {e}")
 
-  # ==========================================
+# ==========================================
 # FUNCIONES PARA CONDICIONES GENERALES
 # ==========================================
 
 
 def guardar_condiciones_generales(cotizacion_id, datos):
   """Guarda las condiciones generales de una cotización, ligadas por cotizacion_id."""
+  if supabase is None:
+    return None
   try:
     supabase.table("condiciones_generales").insert({
         "cotizacion_id": cotizacion_id,
@@ -206,8 +206,11 @@ def guardar_condiciones_generales(cotizacion_id, datos):
   except Exception as e:
     raise Exception(f"Error en BD al guardar condiciones generales: {e}")
 
+
 def buscar_ficha_por_codigo(codigo_ficha: str):
   """Busca una ficha técnica existente por su código único."""
+  if supabase is None:
+    return None
   if not codigo_ficha:
     return None
   try:
@@ -219,4 +222,4 @@ def buscar_ficha_por_codigo(codigo_ficha: str):
     )
     return respuesta.data[0] if respuesta.data else None
   except Exception as e:
-    raise Exception(f"Error en BD al buscar ficha por código: {e}")  
+    raise Exception(f"Error en BD al buscar ficha por código: {e}")

@@ -51,10 +51,14 @@ def generar_documento_cotizacion(datos, num_actual):
     # Compilación limpia del PDF
     pdf_bytes = typst.compile("plantilla.typ", sys_inputs=datos_para_typst)
 
-    # Registro en base de datos
-    cotizacion_id = guardar_datos_cotizacion(datos)
-    guardar_condiciones_generales(cotizacion_id, condiciones)
-    incrementar_contador(num_actual)
+    # Registro en base de datos (opcional - no interrumpe la generación del PDF)
+    if supabase:
+      try:
+        cotizacion_id = guardar_datos_cotizacion(datos)
+        guardar_condiciones_generales(cotizacion_id, condiciones)
+        incrementar_contador(num_actual)
+      except Exception as db_err:
+        print(f"⚠️  Error al guardar en BD (PDF generado igual): {db_err}")
 
     return pdf_bytes
   except Exception as e:
@@ -62,6 +66,10 @@ def generar_documento_cotizacion(datos, num_actual):
 
 
 def generar_pdf_ficha_tecnica(codigo_ficha: str) -> bytes:
+  if supabase is None:
+    raise Exception(
+        "Supabase no está configurado. No se puede obtener la ficha técnica."
+    )
   try:
     res = (
         supabase.table("caracteristicas_tecnicas")
