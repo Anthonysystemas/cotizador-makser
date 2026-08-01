@@ -1,17 +1,31 @@
 import os
-from dotenv import load_dotenv
+
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    load_dotenv = None
+
 from supabase import Client, create_client
 
 
-# Carga las variables desde el archivo .env local
-load_dotenv()
+if load_dotenv:
+    load_dotenv()
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
 if not SUPABASE_URL or not SUPABASE_KEY:
   raise ValueError(
-      "Faltan las credenciales de Supabase en el archivo .env o en el entorno."
+      "Faltan las credenciales de Supabase.\n\n"
+      "Configúralas según tu entorno:\n\n"
+      "1. LOCAL: Crea un archivo '.env' en la raíz del proyecto con:\n"
+      "   SUPABASE_URL=https://...supabase.co\n"
+      "   SUPABASE_KEY=sb_...\n\n"
+      "2. RENDER: En el dashboard de Render, ve a tu servicio → "
+      "Environment → Environment Variables y agrega:\n"
+      "   SUPABASE_URL  = https://tu-proyecto.supabase.co\n"
+      "   SUPABASE_KEY  = sb_...\n\n"
+      "3. STREAMLIT: En .streamlit/secrets.toml o Streamlit Cloud Secrets."
   )
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
