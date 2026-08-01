@@ -29,6 +29,7 @@ def generar_documento_cotizacion(datos, num_actual):
 
     # 3. Datos de la Ficha Técnica
     ficha = datos.get("ficha_tecnica", {})
+    datos_para_typst["mostrar_ficha_tecnica"] = "true" if datos.get("mostrar_ficha_tecnica", True) else "false"
     datos_para_typst["nro_ficha"] = str(ficha.get("codigo_ficha", ""))
     datos_para_typst["producto_nombre"] = str(ficha.get("titulo_producto", ""))
     datos_para_typst["norma"] = str(ficha.get("norma", ""))

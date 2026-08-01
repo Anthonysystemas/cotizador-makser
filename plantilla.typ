@@ -34,6 +34,7 @@
 #let valor_mat = sys.inputs.at("valor_mat", default: "ASTM A36 DE ACEROS AREQUIPA.")
 #let acabado = sys.inputs.at("acabado", default: "Con platinas dentadas y en negro natural.")
 #let nota_pie = sys.inputs.at("nota_pie", default: "NOTA: Precio en la Planta.")
+#let mostrar_ficha_tecnica = sys.inputs.at("mostrar_ficha_tecnica", default: "true") == "true"
 
 // Parseo de características dinámicas (relación Padre-Hijo)
 #let especificaciones_json = sys.inputs.at("especificaciones_json", default: "[]")
@@ -129,42 +130,44 @@ A su solicitud es grato presentar la cotización por el suministro de:
 // ==========================================
 // BLOQUE DE CARACTERÍSTICAS TÉCNICAS
 // ==========================================
-#rect(width: 100%, stroke: 0.5pt + black, inset: 10pt)[
-  #text(weight: "bold", size: 9pt)[CARACTERÍSTICAS TÉCNICAS #producto_nombre]
-  #v(2pt)
-   #grid(
-     columns: (1fr, auto),
-     gutter: 1em,
-     [
-       #set text(size: 9pt)
+#if mostrar_ficha_tecnica [
+  #rect(width: 100%, stroke: 0.5pt + black, inset: 10pt)[
+    #text(weight: "bold", size: 9pt)[CARACTERÍSTICAS TÉCNICAS #producto_nombre]
+    #v(2pt)
+     #grid(
+       columns: (1fr, auto),
+       gutter: 1em,
+       [
+         #set text(size: 9pt)
 
-       #for item in especificaciones [
-         - #item.etiqueta = #item.valor \
+         #for item in especificaciones [
+           - #item.etiqueta = #item.valor \
+         ]
+
+         #v(5pt)
+         *#norma*\
+         #etiqueta_mat #valor_mat \
+         *Acabado: #acabado*
+       ],
+       box(
+       width: 160pt,
+       clip: true,
+       radius: 4pt,
+       [
+         #image(
+           imagen_producto, 
+           width: 160pt,
+           fit: "cover"
+         )
        ]
+     )
+    )
+  ]
+  #v(-2pt)
+  #text(fill: blue, weight: "bold", size: 9pt)[#nota_pie]
 
-       #v(5pt)
-       *#norma*\
-       #etiqueta_mat #valor_mat \
-       *Acabado: #acabado*
-     ],
-     box(
-     width: 160pt,
-     clip: true,
-     radius: 4pt,
-     [
-       #image(
-         imagen_producto, 
-         width: 160pt,
-         fit: "cover"
-       )
-     ]
-   )
-  )
+  #v(10pt)
 ]
-#v(-2pt)
-#text(fill: blue, weight: "bold", size: 9pt)[#nota_pie]
-
-#v(10pt)
 
 // --- CONDICIONES GENERALES (ahora dinámico) ---
 #text(weight: "bold", size: 10pt)[CONDICIONES GENERALES:]

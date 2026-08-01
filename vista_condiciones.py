@@ -76,21 +76,16 @@ def renderizar_condiciones(codigo_cotizacion=None, num_actual=None):
 
     if generar:
         try:
+            lleva_ficha_tecnica = st.session_state.get("lleva_ficha_tecnica", True)
             platina = st.session_state.get("ft_platina_portante", '3/16" x 1 1/2"')
             acabado_base = st.session_state.get("ft_acabado", "Con platinas dentadas y en negro natural.")
 
             detalles_base = st.session_state.get("ft_detalles", [])
             detalles_completos = [{"etiqueta": "Platina Portante (PP)", "valor": platina}] + detalles_base
 
-            datos_cotizacion = {
-                "nro_cotizacion": st.session_state.get("numero_cotizacion", "COT-001"),
-                "fecha": st.session_state.get("fecha_cotizacion", ""),
-                "cliente": st.session_state.get("cliente", ""),
-                "contacto": st.session_state.get("contacto", ""),
-                "atentamente": st.session_state.get("atentamente", "Área Comercial"),
-                "p_total_general": st.session_state.get("p_total_general", "0.00"),
-                "productos": st.session_state.get("lista_productos", []),
-                "ficha_tecnica": {
+            ficha_tecnica = {}
+            if lleva_ficha_tecnica:
+                ficha_tecnica = {
                     "codigo_ficha": st.session_state.get("ft_codigo_ficha", ""),
                     "titulo_producto": st.session_state.get("ft_titulo_producto", "GRATING TOPI 19W-4"),
                     "norma": st.session_state.get("ft_norma", "FABRICACIÓN SEGÚN NORMA NAAMM MB 531"),
@@ -100,7 +95,18 @@ def renderizar_condiciones(codigo_cotizacion=None, num_actual=None):
                     "imagen_url": st.session_state.get("ft_imagen_url", "images/GRATING.jpg"),
                     "nota_pie": st.session_state.get("ft_nota_pie", "NOTA: Precio en la Planta."),
                     "detalles": detalles_completos,
-                },
+                }
+
+            datos_cotizacion = {
+                "nro_cotizacion": st.session_state.get("numero_cotizacion", "COT-001"),
+                "fecha": st.session_state.get("fecha_cotizacion", ""),
+                "cliente": st.session_state.get("cliente", ""),
+                "contacto": st.session_state.get("contacto", ""),
+                "atentamente": st.session_state.get("atentamente", "Área Comercial"),
+                "p_total_general": st.session_state.get("p_total_general", "0.00"),
+                "productos": st.session_state.get("lista_productos", []),
+                "mostrar_ficha_tecnica": lleva_ficha_tecnica,
+                "ficha_tecnica": ficha_tecnica,
                 "condiciones_generales": {
                     "precios": st.session_state.get("cond_precios", "En Dólares USA / No incluyen IGV"),
                     "forma_pago": st.session_state.get("cond_forma_pago", ""),
